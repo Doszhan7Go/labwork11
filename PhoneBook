@@ -1,0 +1,117 @@
+import psycopg2
+from config import database
+
+def pagination():
+    pa = '''
+        select * from phonebook offset %s limit %s;
+    '''
+    limit = int(input('Enter your limit: '))
+    offset = int(input('Enter your offset: '))
+    current.execute(pa, (limit, offset))
+    print(current.fetchall())
+
+def insert_multiple_data():
+    limit = int(input('Enter how many people you want to add: '))
+
+    for i in range(limit):
+        insert()
+
+def delete_data():
+    type_of_delete = input('Enter by which value you want to delete(number, name): ')
+    if type_of_delete == 'number':
+        delete = '''
+        DELETE FROM phonebook WHERE phonenumber = %s;
+        '''
+        number = input('Enter number of data which you want to delete: ')
+        current.execute(delete, (number, ))
+    elif type_of_delete == 'name':
+        delete = '''
+        DELETE FROM phonebook WHERE name = %s;
+        '''
+        name = input('Enter name of data which you want to delete: ')
+        current.execute(delete, (name, ))
+
+
+def querying_data():
+    postgreSQL_select_Query = "select * from phonebook"
+    current.execute(postgreSQL_select_Query)
+    record = current.fetchall()
+    for row in record:
+        print(row)
+
+def update_data():
+    update = '''
+    UPDATE phonebook
+    SET name = %s
+    WHERE phonenumber = %s
+    '''
+    username = input('Enter username which you want to update: ')
+    number = input('Enter number to which you want to change existing one: ')
+    current.execute(update, (username, number))
+
+def insert_from_csv():
+    with open('number.csv', 'r') as f:
+        insert_l = []
+        for line in f:
+            temp = line.split()
+            insert_l.append(temp)
+            #current.execute(create_table)
+            for i,j in insert_l:
+                current.execute(insert, (str(i), str(j)))
+
+def check(name):
+    for username, number in records:
+        if name == username:
+            return True
+
+    return False
+
+
+
+def fetch():
+    for name, phone in records:
+        print(name, phone)
+ 
+config = psycopg2.connect(**database)
+current = config.cursor()
+    
+
+def insert():
+    insert = '''
+    INSERT INTO phonebook VALUES(%s, %s);
+    '''
+    print("Hello! What's your name?")
+    username = str(input())
+    print("OK,", username,", What's your phone number?")
+    number = str(input())
+    
+    if not check(username):
+        current.execute(insert, (username, number))
+
+    else:
+        update = '''
+        UPDATE phonebook
+        SET phonenumber = %s
+        WHERE name = %s
+        '''
+        current.execute(update, (number, username))
+
+
+
+current.execute("SELECT * FROM phonebook")
+
+records = current.fetchall()
+
+# fetch()
+
+# insert()
+
+# insert_multiple_data()
+
+delete_data()
+
+# pagination()
+
+current.close()
+config.commit()
+config.close()
